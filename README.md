@@ -56,11 +56,11 @@ This project uses Vite for a fast local dev experience.
    ```
 
 3. Set up Environment Variables:
-   The application requires your Google Gemini API key available as `API_KEY`.
+   The application requires your Google Gemini API key available as `VITE_API_KEY` (exposed to the client for development simplicity).
 
    Create a `.env.local` file in the project root and add your key:
    ```
-   API_KEY=your_gemini_api_key_here
+   VITE_API_KEY=your_gemini_api_key_here
    ```
 
 4. Run the project:

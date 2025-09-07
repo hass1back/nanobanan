@@ -1,11 +1,12 @@
 import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 
-// Ensure the API key is available from environment variables
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
+// Read API key from Vite client env
+const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
+if (!apiKey) {
+  throw new Error("VITE_API_KEY environment variable not set.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 /**
  * Converts a File object to a base64 string and extracts its MIME type.
