@@ -13,10 +13,10 @@ const Spinner: React.FC = () => (
 
 const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ message }) => {
   return (
-    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-50">
       <Spinner />
-      <p className="mt-4 text-slate-900 text-xl font-medium">{message}</p>
-      <p className="mt-2 text-slate-500">This may take a few moments. Please don't close the window.</p>
+      <p className="mt-4 text-neutral-100 text-xl font-medium">{message}</p>
+      <p className="mt-2 text-neutral-300">This may take a few moments. Please don't close the window.</p>
     </div>
   );
 };

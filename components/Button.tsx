@@ -14,8 +14,8 @@ const Spinner: React.FC = () => (
 );
 
 const Button: React.FC<ButtonProps> = ({ isLoading = false, children, icon, className, ...props }) => {
-  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none";
-  const activeClasses = "bg-slate-900 text-slate-50 hover:bg-slate-900/90";
+  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-neutral-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-2 disabled:pointer-events-none";
+  const activeClasses = "bg-indigo-600 text-white hover:bg-indigo-500";
   const disabledClasses = "disabled:opacity-50";
 
   const sizeClasses = "h-10 px-4 py-2";

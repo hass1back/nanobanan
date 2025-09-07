@@ -11,11 +11,11 @@ const Header: React.FC = () => {
   return (
     <header className="py-6">
       <div className="container mx-auto text-center">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center gap-3">
-            <SparklesIcon className="w-8 h-8 text-indigo-500" />
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400 flex items-center justify-center gap-3">
+            <SparklesIcon className="w-8 h-8 text-violet-400" />
             AI Image Studio
         </h1>
-        <p className="mt-2 text-lg text-slate-600">
+        <p className="mt-2 text-lg text-neutral-300">
           Upload a scene and a person, and let AI blend them into a new masterpiece.
         </p>
       </div>

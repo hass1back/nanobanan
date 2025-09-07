@@ -32,26 +32,42 @@ const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: s
   });
 };
 
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const retryDelayMs = (attempt: number): number => {
+  // attempt is 1-based; attempt 1 has no delay (first try)
+  if (attempt <= 1) return 0;
+  if (attempt === 2) return 5000; // first retry after 5s
+  return 10000; // subsequent retries after 10s
+};
+
 /**
  * Analyzes an image file and returns a textual description.
  * @param imageFile The image file to analyze.
  * @returns A promise that resolves to a string describing the image.
  */
 export const analyzeImage = async (imageFile: File): Promise<string> => {
-    try {
-        const imagePart = await fileToGenerativePart(imageFile);
-        const textPart = { text: "give a short description of the background and scene in the image. focus on environment, lighting conditions, atmosphere, and technical details such as camera and lens. avoid describing people or humans in the image. create a detailed prompt for AI image generation that I can use. start directly with the prompt without explanation. keep the prompt short but technically detailed." };
-        
-        const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: { parts: [imagePart, textPart] },
-        });
+  const imagePart = await fileToGenerativePart(imageFile);
+  const textPart = { text: "give a short description of the background and scene in the image. focus on environment, lighting conditions, atmosphere, and technical details such as camera and lens. avoid describing people or humans in the image. create a detailed prompt for AI image generation that I can use. start directly with the prompt without explanation. keep the prompt short but technically detailed." };
 
-        return response.text;
+  const maxAttempts = 10;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      if (attempt > 1) {
+        await delay(retryDelayMs(attempt));
+      }
+      const response: GenerateContentResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [imagePart, textPart] },
+      });
+      return response.text;
     } catch (error) {
-        console.error("Error analyzing image:", error);
-        throw new Error("Failed to analyze the image.");
+      console.error(`Analyze attempt ${attempt} failed:`, error);
+      if (attempt === maxAttempts) {
+        throw new Error("Failed to analyze the image after multiple retries.");
+      }
     }
+  }
+  throw new Error("Analyze failed unexpectedly.");
 };
 
 /**
@@ -60,28 +76,34 @@ export const analyzeImage = async (imageFile: File): Promise<string> => {
  * @returns A promise that resolves to a data URL of the generated image.
  */
 export const generateImageFromText = async (prompt: string): Promise<string> => {
-  try {
-    const response = await ai.models.generateImages({
-      model: 'imagen-4.0-generate-001',
-      prompt: prompt,
-      config: {
-        numberOfImages: 1,
-        outputMimeType: 'image/jpeg',
-        aspectRatio: '1:1',
-      },
-    });
+  const maxAttempts = 10;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      if (attempt > 1) await delay(retryDelayMs(attempt));
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: prompt,
+        config: {
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          aspectRatio: '1:1',
+        },
+      });
 
-    if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image.imageBytes) {
-      const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
-      const mimeType = 'image/jpeg';
-      return `data:${mimeType};base64,${base64ImageBytes}`;
-    } else {
+      if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image && response.generatedImages[0].image.imageBytes) {
+        const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
+        const mimeType = 'image/jpeg';
+        return `data:${mimeType};base64,${base64ImageBytes}`;
+      }
       throw new Error("Image generation succeeded but no image data was returned.");
+    } catch (error) {
+      console.error(`Text-image attempt ${attempt} failed:`, error);
+      if (attempt === maxAttempts) {
+        throw new Error("Failed to generate the image from the prompt after multiple retries.");
+      }
     }
-  } catch (error) {
-    console.error("Error generating image from text:", error);
-    throw new Error("Failed to generate the image from the prompt.");
   }
+  throw new Error("Image generation from text failed unexpectedly.");
 };
 
 /**
@@ -99,9 +121,10 @@ export const generateReplacedImage = async (scenePrompt: string, personImageFile
   
   const textPart = { text: finalPrompt };
 
-  const maxRetries = 3;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  const maxAttempts = 10;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
+      if (attempt > 1) await delay(retryDelayMs(attempt));
       console.log(`Attempt ${attempt} to generate final image with multimodal model...`);
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image-preview',
@@ -128,12 +151,10 @@ export const generateReplacedImage = async (scenePrompt: string, personImageFile
       throw new Error("Image generation succeeded but no image data was returned in the response.");
 
     } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, error);
-      if (attempt === maxRetries) {
+      console.error(`Compose attempt ${attempt} failed:`, error);
+      if (attempt === maxAttempts) {
         throw new Error("Failed to generate the final image after multiple retries.");
       }
-      // Wait for 3 seconds before retrying.
-      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
   
